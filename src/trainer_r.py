@@ -11,18 +11,18 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data import TensorDataset, DataLoader, SequentialSampler
 from torch.utils.data.distributed import DistributedSampler
 from nltk.corpus import stopwords
-from transformers import BertTokenizer, AdamW, get_linear_schedule_with_warmup
+from transformers import RobertaTokenizer, AdamW, get_linear_schedule_with_warmup
 import numpy as np
 import os
 import shutil
 import sys
 from tqdm import tqdm
-from model import LOTClassModel
+from model_r import LOTClassModel_r
 import warnings
 warnings.filterwarnings("ignore")
 
 
-class LOTClassTrainer(object):
+class LOTClassTrainer_r(object):
 
     def __init__(self, args):
         self.args = args
@@ -37,15 +37,15 @@ class LOTClassTrainer(object):
         eff_batch_size = self.train_batch_size * self.world_size * self.accum_steps
         assert abs(eff_batch_size - 128) < 10, f"Make sure the effective training batch size is around 128, current: {eff_batch_size}"
         print(f"Effective training batch size: {eff_batch_size}")
-        self.pretrained_lm = 'bert-base-uncased'
-        self.tokenizer = BertTokenizer.from_pretrained(self.pretrained_lm, do_lower_case=True)
+        self.pretrained_lm = '/data/linux/transformers/roberta-large' #'bert-base-uncased'
+        self.tokenizer = RobertaTokenizer.from_pretrained(self.pretrained_lm, do_lower_case=True)
         self.vocab = self.tokenizer.get_vocab()
         self.vocab_size = len(self.vocab)
         self.mask_id = self.vocab[self.tokenizer.mask_token]
         self.inv_vocab = {k:v for v, k in self.vocab.items()}
         self.read_label_names(args.dataset_dir, args.label_names_file)
         self.num_class = len(self.label_name_dict)
-        self.model = LOTClassModel.from_pretrained(self.pretrained_lm,
+        self.model = LOTClassModel_r.from_pretrained(self.pretrained_lm,
                                                    output_attentions=False,
                                                    output_hidden_states=False,
                                                    num_labels=self.num_class)
@@ -104,12 +104,11 @@ class LOTClassTrainer(object):
             corpus = open(os.path.join(dataset_dir, text_file), encoding="utf-8")
             docs = [doc.strip() for doc in corpus.readlines()]
             print(f"Converting texts into tensors.")
-           # chunk_size = ceil(len(docs) / self.num_cpus)
-           # chunks = [docs[x:x+chunk_size] for x in range(0, len(docs), chunk_size)]
-           # results = Parallel(n_jobs=self.num_cpus)(delayed(self.encode)(docs=chunk) for chunk in chunks)
-           # input_ids = torch.cat([result[0] for result in results])
-           # attention_masks = torch.cat([result[1] for result in results])
-            input_ids, attention_masks = self.encode(docs)
+            chunk_size = ceil(len(docs) / self.num_cpus)
+            chunks = [docs[x:x+chunk_size] for x in range(0, len(docs), chunk_size)]
+            results = Parallel(n_jobs=self.num_cpus)(delayed(self.encode)(docs=chunk) for chunk in chunks)
+            input_ids = torch.cat([result[0] for result in results])
+            attention_masks = torch.cat([result[1] for result in results])
             print(f"Saving encoded texts into {loader_file}")
             if label_file is not None:
                 print(f"Reading labels from {os.path.join(dataset_dir, label_file)}")

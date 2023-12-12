@@ -1,0 +1,62 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "agnews",
+            "type": "python",
+            "request": "launch",
+            "program": "src/train.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [
+            "--dataset_dir", "datasets/agnews",
+            "--label_names_file","label_names.txt",
+            "--train_file","train.txt",
+            "--test_file","test.txt","--test_label_file","test_labels.txt",
+           "--max_len", "200",
+           "--train_batch_size","64", 
+           "--accum_steps","2",
+           "--eval_batch_size","128",
+            "--gpus","1",
+            "--mcp_epochs","3",
+            "--self_train_epochs","1"
+
+        
+            ]
+        },
+        {
+            "name": "amazon",
+            "type": "python",
+            "request": "launch",
+            "program": "src/train.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [
+            "--dataset_dir", "datasets/amazon",
+            "--label_names_file","label_names.txt",
+            "--train_file","train.txt",
+            "--test_file","test.txt","--test_label_file","test_labels.txt",
+           "--max_len", "200",
+           "--train_batch_size","64", 
+           "--accum_steps","2",
+           "--eval_batch_size","128",
+            "--gpus","1",
+            "--mcp_epochs","3",
+            "--self_train_epochs","0.1"
+
+        
+            ]
+        }
+    ]
+}

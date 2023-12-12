@@ -15,7 +15,7 @@ GPUS=1
 MCP_EPOCH=3
 SELF_TRAIN_EPOCH=1
 
-python src/train.py --dataset_dir datasets/${DATASET}/ --label_names_file ${LABEL_NAME_FILE} \
+python src/train_r.py --dataset_dir datasets/${DATASET}/ --label_names_file ${LABEL_NAME_FILE} \
                     --train_file ${TRAIN_CORPUS} \
                     --test_file ${TEST_CORPUS} --test_label_file ${TEST_LABEL} \
                     --max_len ${MAX_LEN} \
